@@ -24,7 +24,14 @@ defmodule Charlie.MixProject do
     [
       {:bumblebee, "~> 0.6.0"},
       {:nx, "~> 0.9.2"},
-      {:exla, "~> 0.9.2"}
+      {:exla, "~> 0.9.2"},
+      {:membrane_core, "~> 1.1"},
+      {:membrane_portaudio_plugin, "~> 0.19"},
+      {:membrane_file_plugin, "~> 0.17.2"},
+      {:membrane_ffmpeg_swresample_plugin, "~> 0.20.2"},
+      {:membrane_wav_plugin, "~> 0.10.1"},
+      {:membrane_mp3_mad_plugin, "~> 0.18.4"},
+      {:req, "~> 0.5"}
     ]
   end
 end

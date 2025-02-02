@@ -68,29 +68,35 @@ defmodule Charlie.Chat.ChatServer do
 
   @impl GenServer
   def handle_continue(:evaluate_messages, state) do
-    new_state = state ++ [%Message{role: :assistant, content: ""}]
+    body = LocalLLM.chat(state, tools: Charlie.Chat.Tools.available_tools())
 
-    LocalLLM.chat(state,
-      into: fn {:data, data}, {req, resp} ->
-        chunk = Jason.decode!(data)
-
-        last_chunk = chunk["message"]["content"]
-
-        Process.send(self(), {:update_incoming_eval, last_chunk}, [])
-        {:cont, {req, resp}}
-      end
-    )
-
-    {:noreply, new_state}
-  end
-
-  @impl GenServer
-  def handle_info({:update_incoming_eval, last_chunk}, state) do
-    {last_message, other_messages} = List.pop_at(state, -1)
+    tool_calls = body["message"]["tool_calls"]
 
     new_state =
-      other_messages ++ [%Message{last_message | content: last_message.content <> last_chunk}]
+      state ++
+        [
+          %Message{
+            role: :assistant,
+            content: body["message"]["content"],
+            tool_calls: tool_calls
+          }
+        ]
 
-    {:noreply, new_state}
+    if is_list(tool_calls) and Enum.count(tool_calls) > 0 do
+      tool_messages =
+        tool_calls
+        |> Enum.map(
+          &%Message{
+            role: :tool,
+            content: Charlie.Chat.Tools.eval(&1),
+            tool_calls: [&1]
+          }
+        )
+
+      new_state = new_state ++ tool_messages
+      {:noreply, new_state, {:continue, :evaluate_messages}}
+    else
+      {:noreply, new_state}
+    end
   end
 end

@@ -3,7 +3,7 @@ defmodule Charlie.LocalLLM do
 
   defmodule Message do
     @derive Jason.Encoder
-    defstruct [:role, :content]
+    defstruct [:role, :content, :tool_calls]
   end
 
   def prompt(text) do
@@ -28,7 +28,8 @@ defmodule Charlie.LocalLLM do
   end
 
   def chat([%Message{} | _] = messages, opts \\ []) do
-    model = Keyword.get(opts, :model, "deepseek-r1:1.5b")
+    model = Keyword.get(opts, :model, "qwen2.5:3b-instruct-q4_K_M")
+    tools = Keyword.get(opts, :tools)
     into = Keyword.get(opts, :into)
 
     %Req.Response{body: body} =
@@ -36,7 +37,8 @@ defmodule Charlie.LocalLLM do
         json: %{
           model: model,
           messages: messages,
-          stream: not is_nil(into)
+          stream: not is_nil(into),
+          tools: tools
         },
         into: into,
         # connect_options: [timeout: 200_000],

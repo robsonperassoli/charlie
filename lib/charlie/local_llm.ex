@@ -1,26 +1,31 @@
 defmodule Charlie.LocalLLM do
   @base_url "http://localhost:11434"
+  @default_model "qwen2.5:3b-instruct-q4_K_M"
+  @default_embedding_model "nomic-embed-text"
 
   defmodule Message do
     @derive Jason.Encoder
     defstruct [:role, :content, :tool_calls]
   end
 
-  def prompt(text) do
-    meta_prompt = """
+  def default_system_prompt(),
+    do: """
     You are an AI personal assistant and you goal is to help answer questions as best as you can.
-
-    Please answer the following user question: #{text}
     """
+
+  def prompt(text, opts \\ []) do
+    model = Keyword.get(opts, :model, @default_model)
+    system = Keyword.get(opts, :system)
+    format = Keyword.get(opts, :format)
 
     %Req.Response{body: body} =
       Req.post!("#{@base_url}/api/generate",
         json: %{
-          # model: "qwen2.5:3b",
-          model: "phi4:14b-q4_K_M",
-          system: meta_prompt,
+          model: model,
+          system: system,
           prompt: text,
-          stream: false
+          stream: false,
+          format: format
         }
       )
 
@@ -28,7 +33,7 @@ defmodule Charlie.LocalLLM do
   end
 
   def chat([%Message{} | _] = messages, opts \\ []) do
-    model = Keyword.get(opts, :model, "qwen2.5:3b-instruct-q4_K_M")
+    model = Keyword.get(opts, :model, @default_model)
     tools = Keyword.get(opts, :tools)
     into = Keyword.get(opts, :into)
 
@@ -41,11 +46,24 @@ defmodule Charlie.LocalLLM do
           tools: tools
         },
         into: into,
-        # connect_options: [timeout: 200_000],
         receive_timeout: 200_000
       )
 
     body
+  end
+
+  def embed(text, opts \\ []) do
+    model = Keyword.get(opts, :model, @default_embedding_model)
+
+    %Req.Response{body: body} =
+      Req.post!("#{@base_url}/api/embed",
+        json: %{
+          model: model,
+          input: text
+        }
+      )
+
+    body["embeddings"]
   end
 
   def test_chat() do

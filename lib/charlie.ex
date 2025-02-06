@@ -37,4 +37,36 @@ defmodule Charlie do
 
     {:ok, _sup, _pipeline} = Membrane.Pipeline.start_link(Charlie.AudioPlayer, charlie_voice_file)
   end
+
+  def test() do
+    Charlie.WeaviateClient.drop_class("EpisodicMemory")
+    |> dbg()
+
+    Charlie.WeaviateClient.create_class("EpisodicMemory")
+    |> dbg()
+
+    embedding =
+      """
+      context tags: greeting, introduction
+      summary: User introduced themselves and the assistant acknowledged with a greeting.
+      what worked: Effective use of acknowledgment and mutual greetings.
+      """
+      |> Charlie.LocalLLM.embed()
+      |> List.first()
+
+    Charlie.WeaviateClient.create_object(
+      "EpisodicMemory",
+      %{
+        "context_tags" => ["greeting", "introduction"],
+        "summary" => "User introduced themselves and the assistant acknowledged with a greeting.",
+        "what_to_avoid" => "N/A",
+        "what_worked" => "Effective use of acknowledgment and mutual greetings."
+      },
+      vector: embedding
+    )
+    |> dbg()
+
+    Charlie.WeaviateClient.search_episodic_memory("what is your name?")
+    |> dbg()
+  end
 end

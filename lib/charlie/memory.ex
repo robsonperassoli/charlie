@@ -5,10 +5,10 @@ defmodule Charlie.Memory do
 
   def create_episodic_memory_prompt(conversation) do
     """
-    You are an expert conversation analyzer. Your task is to analyze the conversation between a human and an AI assistant provided below, and create a structured summary that can be used as episodic memory for future reference.
+    You are an expert conversation analyzer. Your task is to analyze the conversation between a human and an AI assistant provided below, and create a structured summary that can be used as memory for future reference.
+    Keep in mind that user preferences are always the most important thing and should be addressed.
 
     Analyze the conversation carefully and extract:
-
     2-4 context tags that would help identify similar conversations in the future
     A one-sentence summary of what was accomplished
     The most effective approach or strategy used

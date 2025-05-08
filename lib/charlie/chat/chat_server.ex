@@ -24,6 +24,10 @@ defmodule Charlie.Chat.ChatServer do
     GenServer.cast(__MODULE__, :print)
   end
 
+  def stop() do
+    GenServer.stop(__MODULE__)
+  end
+
   # Server Callbacks
   @impl GenServer
   def init(initial_value) do
@@ -60,7 +64,10 @@ defmodule Charlie.Chat.ChatServer do
   def handle_continue(:evaluate_messages, %Conversation{} = state) do
     new_state = Conversation.recall_episodic_memory(state)
 
-    body = LocalLLM.chat(new_state.messages, tools: Charlie.Chat.Tools.available_tools())
+    body =
+      LocalLLM.chat(new_state.messages,
+        tools: Charlie.Chat.Tools.available_tools()
+      )
 
     tool_calls = body["message"]["tool_calls"]
 

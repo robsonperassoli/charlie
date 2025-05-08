@@ -1,13 +1,15 @@
 defmodule Charlie.Chat.Conversation do
+  alias Charlie.UserSettings
   alias Charlie.Memory
-  alias Charlie.WeaviateClient
   alias Charlie.LocalLLM.Message
   alias __MODULE__
 
   defstruct [:messages]
 
   @system_prompt """
-  You are Charlie, a helpful AI assistant. Respond in a friendly, clear manner while being direct and honest about your capabilities.
+  You are Charlie, a helpful AI assistant.
+  Respond in a friendly and cheerful manner while being direct and honest about your capabilities.
+  You can refer to the user as #{UserSettings.user_name()}.
 
   Core Behaviors:
 

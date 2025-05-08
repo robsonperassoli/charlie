@@ -1,4 +1,6 @@
 defmodule Charlie.Chat.Tools do
+  alias Charlie.UserSettings
+
   def available_tools() do
     [
       %{
@@ -16,7 +18,7 @@ defmodule Charlie.Chat.Tools do
               format: %{
                 type: "string",
                 description:
-                  "The format to return the weather in, e.g. 'celsius' or 'fahrenheit'",
+                  "The format to return the weather in, e.g. 'celsius' or 'fahrenheit', default to celsius",
                 enum: ["celsius", "fahrenheit"]
               }
             },
@@ -47,10 +49,14 @@ defmodule Charlie.Chat.Tools do
   def eval(%{
         "function" => %{
           "name" => "get_current_weather",
-          "arguments" => %{"format" => format, "location" => location}
+          "arguments" => %{"location" => location} = args
         }
       }) do
-    get_current_weather(location, format)
+    Charlie.Weather.current(
+      location,
+      args["format"] || UserSettings.temp_unit(),
+      Charlie.UserSettings.timezone()
+    )
   end
 
   def eval(%{
@@ -59,16 +65,18 @@ defmodule Charlie.Chat.Tools do
           "arguments" => %{"subject" => subject}
         }
       }) do
-    """
-    ### #{subject}
-    Riot in Sao Paulo, AI nerds are going crazy
+    %{"results" => results} = Charlie.Search.search(subject)
 
-    ### #{subject}
-    Brazil won the 2025 world cup
-    """
-  end
-
-  def get_current_weather(location, format) do
-    "55"
+    results
+    |> Enum.take(5)
+    |> Enum.map(
+      &"""
+      Source: #{Enum.join(&1["engines"], ", ")}
+      Category: #{&1["category"]}
+      Title: #{&1["title"]}
+      Content: #{&1["content"]}
+      """
+    )
+    |> Enum.join("\n\n")
   end
 end

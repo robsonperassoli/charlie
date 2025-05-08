@@ -1,6 +1,9 @@
 defmodule Charlie.LocalLLM do
   @base_url "http://localhost:11434"
-  @default_model "qwen2.5:3b-instruct-q4_K_M"
+  @default_model "qwen2.5:7b-instruct-q4_K_M"
+  # @default_model "qwen2.5:3b-instruct-q4_K_M"
+  # @default_model "deepseek-r1:8b"
+
   @default_embedding_model "nomic-embed-text"
 
   defmodule Message do

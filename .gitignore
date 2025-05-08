@@ -27,3 +27,4 @@ charlie-*.tar
 
 /data
 /volumes
+*.secret.exs

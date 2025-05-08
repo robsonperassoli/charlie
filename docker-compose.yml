@@ -22,6 +22,14 @@ services:
       ENABLE_API_BASED_MODULES: 'true'
       ENABLE_MODULES: 'text2vec-ollama,generative-ollama'
       CLUSTER_HOSTNAME: 'node1'
-volumes:
-  weaviate_data:
+  searxng:
+    image: searxng/searxng
+    ports:
+    - 8081:8080
+    volumes:
+    - ./searxng:/etc/searxng
+    restart: on-failure:0
+    environment:
+      BASE_URL: 'http://localhost:8081/'
+      INSTANCE_NAME: 'charlie_search'
 
